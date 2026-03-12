@@ -70,9 +70,8 @@ ApplicationWindow {
         Label {
             id: statusLabel
             text: backend.status
-            color: "#4CAF50"
-            font.bold: true
-            font.pixelSize: 16
+            color: "white"
+            font.pixelSize: 14
             Layout.alignment: Qt.AlignHCenter
         }
 

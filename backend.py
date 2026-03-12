@@ -1,6 +1,6 @@
-import os
 from PySide6.QtCore import QObject, Slot, Signal, Property, QUrl
-from utils import create_folder, get_all_filenames, get_all_extensions, move_file
+from pathlib import Path
+from utils import create_folder, get_all_files, get_unique_extensions, move_file
 
 
 class Backend(QObject):
@@ -26,31 +26,28 @@ class Backend(QObject):
             self.status = "Please select a folder"
             return
 
-        path = QUrl(path_url).toLocalFile()
+        path_str = QUrl(path_url).toLocalFile()
+        path = Path(path_str)
 
-        if not os.path.isdir(path):
+        if not path.is_dir():
             self.status = "Invalid directory"
             return
 
         self.status = "Sorting..."
         try:
-            # get_all_filenames from utils returns os.listdir results (names only)
-            all_items = get_all_filenames(path)
+            files = get_all_files(path)
 
-            # Filter to ensure we only process files, not subdirectories
-            filenames = [f for f in all_items if os.path.isfile(os.path.join(path, f))]
-
-            if not filenames:
+            if not files:
                 self.status = "No files found"
                 return
 
-            extensions = get_all_extensions(filenames)
+            extensions = get_unique_extensions(files)
 
             for extension in extensions:
-                create_folder(path, extension)
-                for filename in filenames:
-                    if filename.endswith(f".{extension}"):
-                        move_file(path, os.path.join(path, extension), filename)
+                target_folder = create_folder(path, extension)
+                for file in files:
+                    if file.suffix.lower() == f".{extension}":
+                        move_file(file, target_folder)
 
             self.status = "Done!"
         except Exception as e:
